@@ -8,11 +8,16 @@ const catchAsync=require('./utilis/catchAsync');
 const ExpressError=require('./utilis/ExpressError');
 const methodOverride=require('method-override');
 const Review=require('./models/reviews.js');
+const User=require('./models/user.js');
 const Campground=require('./models/campground');
 const campRouter=require('./routes/campgrounds');
 const reviewRouter=require('./routes/reviews');
+const userRouter=require('./routes/users');
 const session=require('express-session');
 const flash=require('connect-flash');
+const passport=require('passport');
+const localStrategy=require('passport-local');
+
 
 mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp');
 
@@ -50,15 +55,30 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(session(sessionConfig));
 app.use(flash());
 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new localStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req, res, next) => {
     res.locals.success=req.flash('success');
     res.locals.error=req.flash('error');
+    res.locals.currentUser=req.user;
     next();
 })
 
+app.use('/', userRouter);
 app.use('/campgrounds/:id/reviews', reviewRouter)
 app.use('/campgrounds', campRouter);
 
+
+app.get('/fake', async (req, res) => {
+    const addUser=new User({ email: 'adityamittal', username: '@adi' });
+    const newUser=await User.register(addUser, 'apple');
+    res.send(newUser);
+})
 
 app.get('/', (req, res) => {
     res.send('Welcome to YelpCamp');

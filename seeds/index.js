@@ -17,6 +17,7 @@ const seedit=async () => {
         const random=Math.floor(Math.random()*1000);
         //Campground.create({ location: `${cities[random].city}, ${cities[random].state}` });
         const camp=new Campground({
+            author: "6475eb3ba2de4a7bbe358d5f",
             location: `${cities[random].city}, ${cities[random].state}`,
             title: `${getRandom(descriptors)} ${getRandom(places)}`,
             image: 'https://source.unsplash.com/collection/483251',
