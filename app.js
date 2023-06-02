@@ -1,15 +1,14 @@
+if (process.env.NODE_ENV!=="production") {
+    require('dotenv').config();
+}
+
 const express=require('express');
 const path=require('path');
 const mongoose=require('mongoose');
 const ejsMate=require('ejs-mate');
-const { campgroundSchema }=require('./schemas.js');
-const { reviewSchema }=require('./schemas.js');
-const catchAsync=require('./utilis/catchAsync');
 const ExpressError=require('./utilis/ExpressError');
 const methodOverride=require('method-override');
-const Review=require('./models/reviews.js');
 const User=require('./models/user.js');
-const Campground=require('./models/campground');
 const campRouter=require('./routes/campgrounds');
 const reviewRouter=require('./routes/reviews');
 const userRouter=require('./routes/users');
@@ -17,10 +16,14 @@ const session=require('express-session');
 const flash=require('connect-flash');
 const passport=require('passport');
 const localStrategy=require('passport-local');
+const mongoSanitize=require('express-mongo-sanitize');
+const helmet=require('helmet');
+const MongoStore=require('connect-mongo');
 
+//const dbUrl=process.env.DB_URL;
 
-mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp');
-
+const dbUrl='mongodb://127.0.0.1:27017/yelp-camp';
+mongoose.connect(dbUrl);
 const db=mongoose.connection;
 db.on("error", console.error.bind(console, "connection error"));
 db.once("open", () => {
@@ -30,7 +33,16 @@ db.once("open", () => {
 
 const app=express();
 
+const store=MongoStore.create({
+    mongoUrl: dbUrl,
+    touchAfter: 24*60*60,
+    crypto: {
+        secret: 'thisshouldbeabettersecret!'
+    }
+});
+
 const sessionConfig={
+    store,
     secret: 'thisismysecret',
     resave: false,
     saveUninitialized: true,
@@ -42,11 +54,15 @@ const sessionConfig={
 
 }
 
+
+
 app.engine('ejs', ejsMate);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+app.use(mongoSanitize());
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
@@ -74,14 +90,10 @@ app.use('/campgrounds/:id/reviews', reviewRouter)
 app.use('/campgrounds', campRouter);
 
 
-app.get('/fake', async (req, res) => {
-    const addUser=new User({ email: 'adityamittal', username: '@adi' });
-    const newUser=await User.register(addUser, 'apple');
-    res.send(newUser);
-})
+
 
 app.get('/', (req, res) => {
-    res.send('Welcome to YelpCamp');
+    res.render('home');
 })
 
 app.all('*', (req, res, next) => {
