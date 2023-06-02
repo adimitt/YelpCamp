@@ -20,9 +20,8 @@ const mongoSanitize=require('express-mongo-sanitize');
 const helmet=require('helmet');
 const MongoStore=require('connect-mongo');
 
-//const dbUrl=process.env.DB_URL;
 
-const dbUrl='mongodb://127.0.0.1:27017/yelp-camp';
+const dbUrl=process.env.DB_URL||'mongodb://127.0.0.1:27017/yelp-camp';
 mongoose.connect(dbUrl);
 const db=mongoose.connection;
 db.on("error", console.error.bind(console, "connection error"));
@@ -32,18 +31,20 @@ db.once("open", () => {
 
 
 const app=express();
+const secret=process.env.SECRET||'thisshouldbeabettersecret!';
+
 
 const store=MongoStore.create({
     mongoUrl: dbUrl,
     touchAfter: 24*60*60,
     crypto: {
-        secret: 'thisshouldbeabettersecret!'
+        secret: secret
     }
 });
 
 const sessionConfig={
     store,
-    secret: 'thisismysecret',
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -61,7 +62,9 @@ app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(mongoSanitize());
+app.use(mongoSanitize({
+    replaceWith: '_'
+}));
 app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(express.urlencoded({ extended: true }));
@@ -106,8 +109,9 @@ app.use((err, req, res, next) => {
     res.render('error', { err });
 })
 
+const port=process.env.PORT||3000;
 app.listen('3000', () => {
-    console.log('Connected to Server')
+    console.log(`Serving on port ${port}`)
 })
 
 
