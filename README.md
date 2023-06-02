@@ -4,7 +4,7 @@ https://adimitt-yelp-camp.cyclic.app
 
 A full stack application – Built for my Web Developer Bootcamp course.
 Built on a MongoDB/Express/Node stack, utilizing RESTful architecture with
-the Bootstrap 4 CSS framework for styling. 
+the Bootstrap 5 CSS framework for styling. 
 
 The app performs CRUD operations for users, the campground and the comments. These pieces are referenced within the database
 through various associations. Actionable commands are displayed dynamically on the site
