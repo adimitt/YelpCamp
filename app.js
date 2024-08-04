@@ -21,7 +21,13 @@ const helmet=require('helmet');
 const MongoStore=require('connect-mongo');
 
 
-const dbUrl=process.env.DB_URL||'mongodb://127.0.0.1:27017/yelp-camp';
+const uri =
+  "mongodb+srv://adimittal2812:#Mittaldb20@yelpcamp.ggeqxoy.mongodb.net/?retryWrites=true&w=majority&appName=YelpCamp";
+
+const dbUrl =
+  process.env.DB_URL ||
+  //   "mongodb://127.0.0.1:27017/yelp-camp";
+  "mongodb+srv://adimittal2812:#Mittaldb20@yelpcamp.ggeqxoy.mongodb.net/?retryWrites=true&w=majority&appName=YelpCamp";
 mongoose.connect(dbUrl);
 const db=mongoose.connection;
 db.on("error", console.error.bind(console, "connection error"));
